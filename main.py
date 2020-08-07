@@ -38,10 +38,10 @@ def extract_args():
     parser.add_argument("--dropout", type=float, default='0.1', help="Model dropout probability")
     parser.add_argument("--dl_worker_count", type=int, default='4', help="Number of data loader workers")
     parser.add_argument("--subset", type=int, default='-1', help="Run only on subset of data")
-    parser.add_argument("--with_cuda", type=str2bool, nargs='?', const=True, default=True, help="Training with CUDA: true, or false")
-    parser.add_argument("--download_data", type=str2bool, nargs='?', const=False, default=True, help="Download the data")
-    parser.add_argument("--data_parallel", type=str2bool, nargs='?', const=True, default=True, help="Run batches with data parallel")
-    parser.add_argument("--inference", type=str2bool, nargs='?', const=True, default=False, help="Is inference mode, i.e. evaluate last model state without training")
+    parser.add_argument("--with_cuda", type=str2bool, nargs='?', const=True, default='True', help="Training with CUDA: true, or false")
+    parser.add_argument("--download_data", type=str2bool, nargs='?', const=False, default='True', help="Download the data")
+    parser.add_argument("--data_parallel", type=str2bool, nargs='?', const=True, default='True', help="Run batches with data parallel")
+    parser.add_argument("--inference", type=str2bool, nargs='?', const=True, default='False', help="Is inference mode, i.e. evaluate last model state without training")
     args = parser.parse_args()
 
     return args
