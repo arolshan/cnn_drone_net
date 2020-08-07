@@ -16,17 +16,6 @@ def unzip_file(file, out_folder):
     zip_file.close()
 
 
-def decompress_file(input_path, out_path=None):
-    assert input_path.endswith('.gz')
-    if (out_path == None):
-        out_path = input_path[:-3]
-
-    os.makedirs(os.path.dirname(out_path), exist_ok=True)
-    with gzip.open(input_path, 'rb') as f_in:
-        with open(out_path, 'wb') as f_out:
-            shutil.copyfileobj(f_in, f_out)
-
-
 def download_data(url, out_path):
     logging.info(f'Downloading contents from {url} to {out_path}')
     os.makedirs(os.path.dirname(out_path), exist_ok=True)
