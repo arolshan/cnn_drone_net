@@ -4,8 +4,12 @@ import os
 import shutil
 import zipfile
 import requests
+import torch
 import urllib3
+import numpy as np
 from clint.textui import progress
+from torchvision import transforms, datasets
+from torch.utils.data.sampler import SubsetRandomSampler
 
 
 def unzip_file(file, out_folder):
@@ -43,3 +47,21 @@ def download_file(url, out_path):
             out.write(data)
 
     r.release_conn()
+
+
+def load_split_train_test(datadir, valid_size=.2, batch_size=64, img_resize=224):
+    train_transforms = transforms.Compose([transforms.Resize(img_resize), transforms.ToTensor(), ])
+    test_transforms = transforms.Compose([transforms.Resize(img_resize), transforms.ToTensor(), ])
+    train_data = datasets.ImageFolder(datadir, transform=train_transforms)
+    test_data = datasets.ImageFolder(datadir, transform=test_transforms)
+    num_train = len(train_data)
+    indices = list(range(num_train))
+    split = int(np.floor(valid_size * num_train))
+    np.random.shuffle(indices)
+    train_idx, test_idx = indices[split:], indices[:split]
+    train_sampler = SubsetRandomSampler(train_idx)
+    test_sampler = SubsetRandomSampler(test_idx)
+    train_loader = torch.utils.data.DataLoader(train_data, sampler=train_sampler, batch_size=batch_size)
+    test_loader = torch.utils.data.DataLoader(test_data, sampler=test_sampler, batch_size=batch_size)
+
+    return train_loader, test_loader

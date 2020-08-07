@@ -8,8 +8,10 @@ import json
 import time
 import cnn_drone_net_utils
 import torch.nn.functional as F
+
+from torchvision import models
 from sklearn.model_selection import train_test_split
-from torch import nn
+from torch import nn, optim
 from torch.utils.data import DataLoader
 from pathlib import Path
 from cnn_drone_net_consts import *
@@ -47,7 +49,7 @@ def extract_args():
 
     return args
 
-
+model = models.resnet50(pretrained=True)
 def create_dirs(args):
     os.makedirs(args.output_path, exist_ok=True)
     os.makedirs(DATA_PATH, exist_ok=True)
