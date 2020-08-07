@@ -28,6 +28,7 @@ dependencies:
   - urllib3
   - seaborn
   - mistune
+  - clint
   - pip
   - pip:
       - nbmerge

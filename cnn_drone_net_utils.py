@@ -3,9 +3,9 @@ import logging
 import os
 import shutil
 import zipfile
-
 import requests
 import urllib3
+from clint.textui import progress
 
 
 def unzip_file(file, out_folder):
