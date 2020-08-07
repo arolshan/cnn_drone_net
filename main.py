@@ -6,7 +6,7 @@ import numpy as np
 import torch
 import json
 import time
-import cnn_drone_net_utils as utils
+import cnn_drone_net_utils
 import torch.nn.functional as F
 from sklearn.model_selection import train_test_split
 from torch import nn
@@ -77,8 +77,8 @@ def download_data_unzip(args):
         return
 
     zipped = f'{DATA_PATH}/{DATA_UAV_COMPRESSED_FILENAME}'
-    utils.download_data(DATA_BLOB_UAV_COMPRESSED, out_path=zipped)
-    utils.unzip_file(zipped, DATA_PATH)
+    cnn_drone_net_utils.download_data(DATA_BLOB_UAV_COMPRESSED, out_path=zipped)
+    cnn_drone_net_utils.unzip_file(zipped, DATA_PATH)
 
 
 def train(args):
