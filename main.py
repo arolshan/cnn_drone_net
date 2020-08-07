@@ -11,8 +11,7 @@ from sklearn.model_selection import train_test_split
 from torch import nn
 from torch.utils.data import DataLoader
 from pathlib import Path
-
-DATA_PATH = "./data"
+from cnn_drone_net_consts import *
 
 def str2bool(v):
     if isinstance(v, bool):
