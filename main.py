@@ -13,6 +13,7 @@ from torch.utils.data import DataLoader
 from pathlib import Path
 from cnn_drone_net_consts import *
 
+
 def str2bool(v):
     if isinstance(v, bool):
         return v
@@ -22,6 +23,7 @@ def str2bool(v):
         return False
     else:
         raise argparse.ArgumentTypeError('Boolean value expected.')
+
 
 def extract_args():
     parser = argparse.ArgumentParser()
@@ -44,13 +46,16 @@ def extract_args():
 
     return args
 
+
 def create_dirs(args):
     os.makedirs(args.output_path, exist_ok=True)
     os.makedirs(DATA_PATH, exist_ok=True)
 
+
 def dump_args(args):
     with open(f'{args.output_path}/args.json', 'w') as out:
         json.dump(args.__dict__, out, indent=4)
+
 
 def setup_logging(args):
     logFormatter = logging.Formatter("[%(asctime)s, %(threadName)s, %(levelname)s] %(message)s")
