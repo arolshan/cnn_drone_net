@@ -1,25 +1,11 @@
-import glob
 import gzip
-import json
+import logging
 import os
 import shutil
 import zipfile
-import pandas as pd
-import torch
-import urllib3
+
 import requests
-import logging
-import numpy as np
-import seaborn as sns
-import matplotlib.pyplot as plt
-from collections import Counter
-from typing import List
-from pandas import DataFrame
-from typing import Dict, Tuple, Sequence
-from sklearn.preprocessing import KBinsDiscretizer
-from cnn_drone_net_consts import *
-from sklearn.cluster import KMeans
-from clint.textui import progress
+import urllib3
 
 
 def unzip_file(file, out_folder):
