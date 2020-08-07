@@ -10,6 +10,8 @@ from clint.textui import progress
 
 def unzip_file(file, out_folder):
     assert file.endswith('.zip')
+    logger = logging.getLogger()
+    logger.info(f'Unzipping file {file} to {out_folder}')
     os.makedirs(os.path.dirname(out_folder), exist_ok=True)
     zip_file = zipfile.ZipFile(file)
     zip_file.extractall(out_folder)
@@ -17,7 +19,8 @@ def unzip_file(file, out_folder):
 
 
 def download_data(url, out_path):
-    logging.info(f'Downloading contents from {url} to {out_path}')
+    logger = logging.getLogger()
+    logger.info(f'Downloading contents from {url} to {out_path}')
     os.makedirs(os.path.dirname(out_path), exist_ok=True)
     r = requests.get(url, stream=True)
     with open(out_path, 'wb') as f:
