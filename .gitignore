@@ -443,6 +443,7 @@ CHANGELOG.temp
 # data
 /data/*
 /data
+*/data/*
 
 #nugets
 */obj/*
