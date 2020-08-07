@@ -473,6 +473,7 @@ project.lock.json
 *.cache
 *.cache
 */data/*
+**/data/*
 */obj/*
 *.pdb
 *.cache
