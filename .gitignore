@@ -480,3 +480,4 @@ project.lock.json
 */*obj/*
 */Release/*
 */.vs/*
+*.pth
