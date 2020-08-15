@@ -15,6 +15,7 @@ from torch import nn, optim
 from torch.utils.data import DataLoader
 from pathlib import Path
 from cnn_drone_net_consts import *
+from torch.utils.tensorboard import SummaryWriter
 
 
 def str2bool(v):

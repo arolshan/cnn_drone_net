@@ -20,6 +20,7 @@ dependencies:
   - pandas
   - cython
   - pytest
+  - tensorboard
   - tqdm
   - opencv
   - ffmpeg>4.1
