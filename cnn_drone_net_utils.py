@@ -7,6 +7,10 @@ import requests
 import torch
 import urllib3
 import numpy as np
+import io
+import cv2
+import numpy as np
+import matplotlib.pyplot as plt
 from clint.textui import progress
 from torchvision import transforms, datasets
 from torch.utils.data.sampler import SubsetRandomSampler
@@ -65,3 +69,29 @@ def load_split_train_test(datadir, valid_size=.2, batch_size=64, img_resize=224)
     test_loader = torch.utils.data.DataLoader(test_data, sampler=test_sampler, batch_size=batch_size)
 
     return train_loader, test_loader
+
+
+def load_dataset(datadir, batch_size=64, img_resize=224):
+    data_transforms = transforms.Compose([transforms.Resize(img_resize), transforms.ToTensor(), ])
+    data = datasets.ImageFolder(datadir, transform=data_transforms)
+    data_len = len(data)
+    indices = list(range(data_len))
+    np.random.shuffle(indices)
+    sampler = SubsetRandomSampler(indices)
+    dataset_loader = torch.utils.data.DataLoader(data, sampler=sampler, batch_size=batch_size)
+
+    return dataset_loader
+
+
+def plot_to_tensorboard(tag, writer, fig, step, dpi=180):
+    buf = io.BytesIO()
+    fig.savefig(buf, format="png", dpi=dpi)
+    buf.seek(0)
+    img_arr = np.frombuffer(buf.getvalue(), dtype=np.uint8)
+    buf.close()
+    img = cv2.imdecode(img_arr, 1)
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    img = cv2.flip(img, 1)
+    img = cv2.rotate(img, cv2.ROTATE_90_COUNTERCLOCKWISE)
+    img = np.swapaxes(img, 0, 2)
+    writer.add_image(tag, img, 0)

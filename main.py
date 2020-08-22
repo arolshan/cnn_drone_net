@@ -50,7 +50,7 @@ def extract_args():
 
     return args
 
-model = models.resnet50(pretrained=True)
+
 def create_dirs(args):
     os.makedirs(args.output_path, exist_ok=True)
     os.makedirs(DATA_PATH, exist_ok=True)
@@ -79,9 +79,12 @@ def download_data_unzip(args):
     if (not args.download_data):
         return
 
-    zipped = f'{DATA_PATH}/{DATA_UAV_COMPRESSED_FILENAME}'
-    cnn_drone_net_utils.download_data(DATA_BLOB_UAV_COMPRESSED, out_path=zipped)
-    cnn_drone_net_utils.unzip_file(zipped, DATA_PATH)
+    uav_zipped = f'{DATA_PATH}/{DATA_UAV_COMPRESSED_FILENAME}'
+    ge_zipped = f'{DATA_PATH}/{DATA_BLOB_GEARTH_COMPRESSED}'
+    cnn_drone_net_utils.download_data(DATA_BLOB_UAV_COMPRESSED, out_path=uav_zipped)
+    cnn_drone_net_utils.download_data(DATA_BLOB_GEARTH_COMPRESSED, out_path=ge_zipped)
+    cnn_drone_net_utils.unzip_file(uav_zipped, DATA_PATH)
+    cnn_drone_net_utils.unzip_file(ge_zipped, DATA_PATH)
 
 
 def train(args):
