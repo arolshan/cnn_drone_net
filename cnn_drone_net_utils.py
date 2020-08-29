@@ -101,4 +101,4 @@ def plot_to_tensorboard(tag, writer, fig, step, dpi=180):
     img = cv2.flip(img, 1)
     img = cv2.rotate(img, cv2.ROTATE_90_COUNTERCLOCKWISE)
     img = np.swapaxes(img, 0, 2)
-    writer.add_image(tag, img, 0)
+    writer.add_image(tag, img, step)
