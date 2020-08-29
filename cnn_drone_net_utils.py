@@ -75,10 +75,11 @@ def load_split_train_test(datadir, valid_size=.2, batch_size=64, img_resize=224)
 def load_dataset(datadir, batch_size=64, img_resize=224):
     data_transforms = transforms.Compose([
         transforms.RandomHorizontalFlip(),
-        cnn_drone_net_transforms.RandomGaussianNoise(0., 1.),
+        # cnn_drone_net_transforms.RandomGaussianNoise(0., 1.),
         transforms.Resize(img_resize),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-        transforms.ToTensor(), ])
+        transforms.ToTensor(),
+        # transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+    ])
     data = datasets.ImageFolder(datadir, transform=data_transforms)
     data_len = len(data)
     indices = list(range(data_len))
