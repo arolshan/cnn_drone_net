@@ -16,6 +16,7 @@ from clint.textui import progress
 from torchvision import transforms, datasets
 from torch.utils.data.sampler import SubsetRandomSampler
 
+
 def unzip_file(file, out_folder):
     assert file.endswith('.zip')
     logger = logging.getLogger()
@@ -76,6 +77,7 @@ def load_dataset(datadir, batch_size=64, img_resize=224):
         transforms.RandomHorizontalFlip(),
         cnn_drone_net_transforms.RandomGaussianNoise(0., 1.),
         transforms.Resize(img_resize),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
         transforms.ToTensor(), ])
     data = datasets.ImageFolder(datadir, transform=data_transforms)
     data_len = len(data)
