@@ -11,10 +11,10 @@ import io
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
+import cnn_drone_net_transforms
 from clint.textui import progress
 from torchvision import transforms, datasets
 from torch.utils.data.sampler import SubsetRandomSampler
-
 
 def unzip_file(file, out_folder):
     assert file.endswith('.zip')
@@ -72,7 +72,11 @@ def load_split_train_test(datadir, valid_size=.2, batch_size=64, img_resize=224)
 
 
 def load_dataset(datadir, batch_size=64, img_resize=224):
-    data_transforms = transforms.Compose([transforms.Resize(img_resize), transforms.ToTensor(), ])
+    data_transforms = transforms.Compose([
+        transforms.RandomHorizontalFlip(),
+        cnn_drone_net_transforms.RandomGaussianNoise(0., 1.),
+        transforms.Resize(img_resize),
+        transforms.ToTensor(), ])
     data = datasets.ImageFolder(datadir, transform=data_transforms)
     data_len = len(data)
     indices = list(range(data_len))
