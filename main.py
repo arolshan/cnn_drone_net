@@ -46,6 +46,7 @@ def extract_args():
     parser.add_argument("--data_parallel", type=str2bool, nargs='?', const=True, default='True', help="Run batches with data parallel")
     parser.add_argument("--inference", type=str2bool, nargs='?', const=True, default='False', help="Is inference mode, i.e. evaluate last model state without training")
     parser.add_argument("--train_set", type=str, default='GoogleEarth', help="Which set to train with. Possible values 'GoogleEarth', 'Satellite'")
+    parser.add_argument("--model", type=str, default='Resnet50', help="Which CNN to run. Possible values 'Resnet50', 'VGG16', 'Mobilenet_V2'")
     args = parser.parse_args()
 
     return args
@@ -153,20 +154,37 @@ def train(args):
     if (args.with_cuda):
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    model = models.resnet50(pretrained=True)
-    logging.info(f'Loaded pretrained model: {models.resnet50.__name__}')
-    logging.info("Freezing the pretrained model's parameters")
-    for param in model.parameters():
-        param.requires_grad = False
+    if (args.model == "VGG16"):
+        model = models.vgg16(pretrained=True)
+        logging.info(f'Loaded pretrained model: {models.vgg16.__name__}')
+        for param in model.parameters():
+            param.requires_grad = False
+        model.classifier[-1] = nn.Sequential(nn.Linear(in_features=4096, out_features=2),
+                                             nn.LogSoftmax(dim=1))
+        optimizer = optim.Adam(model.classifier[-1].parameters(), lr=args.lr)
 
-    logging.info("Initialzing the last fully connected layer of the pretrained model")
-    model.fc = nn.Sequential(nn.Linear(2048, 512),
-                             nn.ReLU(),
-                             nn.Dropout(args.dropout),
-                             nn.Linear(512, 10),
-                             nn.LogSoftmax(dim=1))
+    if(args.model == "Mobilenet_V2"):
+        model = models.mobilenet_v2(pretrained=True)
+        logging.info(f'Loaded pretrained model: {models.mobilenet_v2.__name__}')
+        for param in model.parameters():
+            param.requires_grad = False
+        model.classifier = nn.Sequential(nn.Dropout(0.2),
+                                         nn.Linear(in_features=1280, out_features=2),
+                                         nn.LogSoftmax(dim=1))
+        optimizer = optim.Adam(model.classifier.parameters(), lr=args.lr)
+    if (args.model == "Resnet50"):
+        model = models.resnet50(pretrained=True)
+        logging.info(f'Loaded pretrained model: {models.resnet50.__name__}')
+        for param in model.parameters():
+            param.requires_grad = False
+        model.fc = nn.Sequential(nn.Linear(2048, 512),
+                                 nn.ReLU(),
+                                 nn.Dropout(args.dropout),
+                                 nn.Linear(512, 2),
+                                 nn.LogSoftmax(dim=1))
+        optimizer = optim.Adam(model.fc.parameters(), lr=args.lr)
+
     criterion = nn.NLLLoss()
-    optimizer = optim.Adam(model.fc.parameters(), lr=args.lr)
     model.to(device)
 
     epochs = args.epochs
