@@ -1,0 +1,22 @@
+{
+    "output_path": "./output/3",
+    "hidden_layers": 1,
+    "hidden_layer_sizes": [
+        2048
+    ],
+    "batch_size": 8,
+    "epochs": 3,
+    "print_rate": 1,
+    "cuda_device": 3,
+    "lr": 0.001,
+    "seed": 42,
+    "dropout": 0.2,
+    "dl_worker_count": 4,
+    "subset": -1,
+    "with_cuda": true,
+    "download_data": true,
+    "data_parallel": true,
+    "inference": false,
+    "train_set": "GoogleEarth",
+    "model": "Resnet50"
+}
