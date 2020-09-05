@@ -481,3 +481,4 @@ project.lock.json
 */Release/*
 */.vs/*
 *.pth
+output/*
