@@ -217,13 +217,21 @@ def train(args):
 
     logging.info("Done training model")
     torch.save(model, f'{args.output_path}/model.pth')
+
     fig = figure(num=None, figsize=(13, 13))
     plt.plot(train_losses, label='Training loss')
-    plt.plot(val_losses, label='Validation loss')
-    plt.plot(f1_scores, label='F1 score')
-    plt.legend(frameon=False)
-    plt.savefig(f'{args.output_path}/out_graph.png')
+    plt.savefig(f'{args.output_path}/train_loss.png')
+    plt.clf()
 
+    fig = figure(num=None, figsize=(13, 13))
+    plt.plot(val_losses, label='Validation loss')
+    plt.savefig(f'{args.output_path}/val_loss.png')
+    plt.clf()
+
+    fig = figure(num=None, figsize=(13, 13))
+    plt.plot(f1_scores, label='F1 score')
+    plt.savefig(f'{args.output_path}/f1_score.png')
+    plt.clf()
 
 def main():
     args = extract_args()
