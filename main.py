@@ -1,43 +1,19 @@
 import argparse
-import os
+import json
 import logging
-import matplotlib.pyplot as plt
-import numpy as np
-import torch
-import json
-import time
-import cnn_drone_net_utils
-import torch.nn.functional as F
-import argparse
 import os
-import matplotlib.pyplot as plt
-import numpy as np
-import torch
-import json
 import time
-import torch.nn.functional as F
-import sys
 import cnn_drone_net_utils
+
+import matplotlib.pyplot as plt
+import torch
 import torchvision
-import torchvision.transforms as transforms
-import cv2
-import io
-from torch.utils.tensorboard import SummaryWriter
-from sklearn.metrics import f1_score
-from torchvision import datasets, transforms, models
-from sklearn.model_selection import train_test_split
-from torch import nn, optim
-from torch.utils.data import Dataset, DataLoader
-from pathlib import Path
-from PIL import Image
 from matplotlib.pyplot import figure
-from torchvision import models
-from sklearn.model_selection import train_test_split
+from sklearn.metrics import f1_score
 from torch import nn, optim
-from torch.utils.data import DataLoader
-from pathlib import Path
+from torchvision import models
+
 from cnn_drone_net_consts import *
-from torch.utils.tensorboard import SummaryWriter
 
 
 def str2bool(v):
