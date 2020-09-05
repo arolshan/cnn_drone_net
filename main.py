@@ -121,7 +121,7 @@ def train(args):
     logging.info(f'Initialized train set loader from directory {train_data_dir}, classes: {train_loader.dataset.classes}')
 
     val_data_dir = UAV_DATA_PATH
-    val_loader = cnn_drone_net_utils.load_dataset(val_data_dir, batch_size=args.batch_size)
+    val_loader = cnn_drone_net_utils.load_validation_dataset(val_data_dir, batch_size=args.batch_size)
     logging.info(f'Initialized validation set loader from directory {UAV_DATA_PATH}, classes: {val_loader.dataset.classes}')
 
     logging.info("Sampling training set:")

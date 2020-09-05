@@ -78,7 +78,25 @@ def load_dataset(datadir, batch_size=64, img_resize=224):
         # cnn_drone_net_transforms.RandomGaussianNoise(0., 1.),
         transforms.Resize(img_resize),
         transforms.ToTensor(),
-        # transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                             std=[0.229, 0.224, 0.225])
+    ])
+    data = datasets.ImageFolder(datadir, transform=data_transforms)
+    data_len = len(data)
+    indices = list(range(data_len))
+    np.random.shuffle(indices)
+    sampler = SubsetRandomSampler(indices)
+    dataset_loader = torch.utils.data.DataLoader(data, sampler=sampler, batch_size=batch_size)
+
+    return dataset_loader
+
+def load_validation_dataset(datadir, batch_size=64, img_resize=224):
+    data_transforms = transforms.Compose([
+        # cnn_drone_net_transforms.RandomGaussianNoise(0., 1.),
+        transforms.Resize(img_resize),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                             std=[0.229, 0.224, 0.225])
     ])
     data = datasets.ImageFolder(datadir, transform=data_transforms)
     data_len = len(data)
