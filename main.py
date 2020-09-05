@@ -150,9 +150,7 @@ def train(args):
     plt.savefig(f'{args.output_path}/validation_sample.png')
     plt.close()
 
-    device = "cpu"
-    if (args.with_cuda):
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = torch.device(f"cuda:{args.cuda_device}" if args.with_cuda else "cpu")
 
     if (args.model == "VGG16"):
         model = models.vgg16(pretrained=True)
