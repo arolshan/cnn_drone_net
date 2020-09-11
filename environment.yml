@@ -29,7 +29,9 @@ dependencies:
   - urllib3
   - seaborn
   - mistune
+  - mistune
   - clint
+  - scipy
   - pip
   - pip:
       - nbmerge
@@ -38,4 +40,5 @@ dependencies:
       - atari-py
       - box2d-py
       - torch
+      - spline
       - scikit-learn
