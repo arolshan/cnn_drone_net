@@ -4,18 +4,15 @@ import logging
 import os
 import time
 import cnn_drone_net_utils
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 import torch
 import torchvision
-import matplotlib.pyplot as plt
 from matplotlib.pyplot import figure
 from sklearn.metrics import f1_score
-from torch import nn, optim
-from torchvision import models
+from torch import nn
 from glob import glob
 from cnn_drone_net_consts import *
-from scipy import interpolate
 
 try:
     from types import SimpleNamespace as Namespace
@@ -37,7 +34,8 @@ def str2bool(v):
 
 def extract_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-i", "--input_args_dir", required=False, default=None, type=str, help="If this is set, we run multiple experiements based on the JSON files in given directory.")
+    parser.add_argument("-i", "--input_args_dir", required=False, default=None, type=str,
+                        help="If this is set, we run multiple experiements based on the JSON files in given directory.")
     parser.add_argument("-o", "--output_path", required=False, default=DEFAULT_OUT_PATH, type=str, help="Output path")
     parser.add_argument("-b", "--batch_size", type=int, default='8', help="Number of batch_size")
     parser.add_argument("-e", "--epochs", type=int, default='3', help="Number of epochs")
@@ -156,37 +154,7 @@ def train(args):
     plt.close()
 
     device = torch.device(f"cuda:{args.cuda_device}" if args.with_cuda else "cpu")
-
-    if (args.model == "VGG16"):
-        model = models.vgg16(pretrained=True)
-        logging.info(f'Loaded pretrained model: {models.vgg16.__name__}')
-        for param in model.parameters():
-            param.requires_grad = False
-        model.classifier[-1] = nn.Sequential(nn.Linear(in_features=4096, out_features=2),
-                                             nn.LogSoftmax(dim=1))
-        optimizer = optim.Adam(model.classifier[-1].parameters(), lr=args.lr)
-
-    elif (args.model == "Mobilenet_V2"):
-        model = models.mobilenet_v2(pretrained=True)
-        logging.info(f'Loaded pretrained model: {models.mobilenet_v2.__name__}')
-        for param in model.parameters():
-            param.requires_grad = False
-        model.classifier = nn.Sequential(nn.Dropout(0.2),
-                                         nn.Linear(in_features=1280, out_features=2),
-                                         nn.LogSoftmax(dim=1))
-        optimizer = optim.Adam(model.classifier.parameters(), lr=args.lr)
-    elif (args.model == "Resnet50"):
-        model = models.resnet50(pretrained=True)
-        logging.info(f'Loaded pretrained model: {models.resnet50.__name__}')
-        for param in model.parameters():
-            param.requires_grad = False
-        model.fc = nn.Sequential(nn.Linear(2048, 512),
-                                 nn.ReLU(),
-                                 nn.Dropout(args.dropout),
-                                 nn.Linear(512, 2),
-                                 nn.LogSoftmax(dim=1))
-        optimizer = optim.Adam(model.fc.parameters(), lr=args.lr)
-
+    model, optimizer = cnn_drone_net_utils.get_model_optimizer(args)
     criterion = nn.NLLLoss()
     model.to(device)
 

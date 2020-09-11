@@ -1,21 +1,20 @@
-import gzip
+import io
 import logging
 import os
-import shutil
 import zipfile
+import cv2
+import numpy as np
 import requests
 import torch
 import urllib3
-import numpy as np
-import io
-import cv2
-import numpy as np
-import matplotlib.pyplot as plt
-import cnn_drone_net_transforms
 from clint.textui import progress
-from torchvision import transforms, datasets
-from torch.utils.data.sampler import SubsetRandomSampler
 from scipy import interpolate
+from torch import nn, optim
+from torch.utils.data.sampler import SubsetRandomSampler
+from torchvision import models
+from torchvision import transforms, datasets
+
+from cnn_drone_net_consts import *
 
 
 def unzip_file(file, out_folder):
@@ -62,6 +61,7 @@ def interpolate_line(x, y, new_step=0.1):
     y_new = f(x_new)
 
     return x_new, y_new
+
 
 def load_split_train_test(datadir, valid_size=.4, batch_size=64, img_resize=224):
     train_transforms = transforms.Compose([
@@ -110,6 +110,7 @@ def load_dataset(datadir, batch_size=64, img_resize=224):
 
     return dataset_loader
 
+
 def load_validation_dataset(datadir, batch_size=64, img_resize=224):
     data_transforms = transforms.Compose([
         # cnn_drone_net_transforms.RandomGaussianNoise(0., 1.),
@@ -140,3 +141,38 @@ def plot_to_tensorboard(tag, writer, fig, step, dpi=180):
     img = cv2.rotate(img, cv2.ROTATE_90_COUNTERCLOCKWISE)
     img = np.swapaxes(img, 0, 2)
     writer.add_image(tag, img, step)
+
+
+def get_model_optimizer(args):
+    if (args.model == MODEL_NAME_VGG):
+        model = models.vgg16(pretrained=True)
+        logging.info(f'Loaded pretrained model: {models.vgg16.__name__}')
+        for param in model.parameters():
+            param.requires_grad = False
+        model.classifier[-1] = nn.Sequential(nn.Linear(in_features=4096, out_features=2),
+                                             nn.LogSoftmax(dim=1))
+        optimizer = optim.Adam(model.classifier[-1].parameters(), lr=args.lr)
+
+    elif (args.model == MODEL_NAME_MOBILENETV2):
+        model = models.mobilenet_v2(pretrained=True)
+        logging.info(f'Loaded pretrained model: {models.mobilenet_v2.__name__}')
+        for param in model.parameters():
+            param.requires_grad = False
+        model.classifier = nn.Sequential(nn.Dropout(args.dropout),
+                                         nn.Linear(in_features=1280, out_features=2),
+                                         nn.LogSoftmax(dim=1))
+        optimizer = optim.Adam(model.classifier.parameters(), lr=args.lr)
+
+    elif (args.model == MODEL_NAME_RESNET):
+        model = models.resnet50(pretrained=True)
+        logging.info(f'Loaded pretrained model: {models.resnet50.__name__}')
+        for param in model.parameters():
+            param.requires_grad = False
+        model.fc = nn.Sequential(nn.Linear(2048, 512),
+                                 nn.ReLU(),
+                                 nn.Dropout(args.dropout),
+                                 nn.Linear(512, 2),
+                                 nn.LogSoftmax(dim=1))
+        optimizer = optim.Adam(model.fc.parameters(), lr=args.lr)
+
+    return model, optimizer
