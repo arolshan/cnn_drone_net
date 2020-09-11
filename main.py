@@ -114,15 +114,18 @@ def download_data_unzip(args):
 
 def train(args):
     train_data_dir = GE_DATA_PATH
-    if (args.train_set == TRAIN_SET_SAT):
-        train_data_dir = GE_DATA_PATH  # Possible values: ['GE_DATA_PATH', 'SAT_DATA_PATH']
+    if(args.train_set == TRAIN_SET_UAV):
+        train_loader, val_loader = cnn_drone_net_utils.load_split_train_test(UAV_DATA_PATH, batch_size=args.batch_size)
+    else:
+        if (args.train_set == TRAIN_SET_SAT):
+            train_data_dir = GE_DATA_PATH  # Possible values: ['GE_DATA_PATH', 'SAT_DATA_PATH']
 
-    train_loader = cnn_drone_net_utils.load_dataset(train_data_dir, batch_size=args.batch_size)
-    logging.info(f'Initialized train set loader from directory {train_data_dir}, classes: {train_loader.dataset.classes}')
+        train_loader = cnn_drone_net_utils.load_dataset(train_data_dir, batch_size=args.batch_size)
+        logging.info(f'Initialized train set loader from directory {train_data_dir}, classes: {train_loader.dataset.classes}')
 
-    val_data_dir = UAV_DATA_PATH
-    val_loader = cnn_drone_net_utils.load_validation_dataset(val_data_dir, batch_size=args.batch_size)
-    logging.info(f'Initialized validation set loader from directory {UAV_DATA_PATH}, classes: {val_loader.dataset.classes}')
+        val_data_dir = UAV_DATA_PATH
+        val_loader = cnn_drone_net_utils.load_validation_dataset(val_data_dir, batch_size=args.batch_size)
+        logging.info(f'Initialized validation set loader from directory {UAV_DATA_PATH}, classes: {val_loader.dataset.classes}')
 
     logging.info("Sampling training set:")
     examples = iter(train_loader)
@@ -161,7 +164,7 @@ def train(args):
                                              nn.LogSoftmax(dim=1))
         optimizer = optim.Adam(model.classifier[-1].parameters(), lr=args.lr)
 
-    if(args.model == "Mobilenet_V2"):
+    elif(args.model == "Mobilenet_V2"):
         model = models.mobilenet_v2(pretrained=True)
         logging.info(f'Loaded pretrained model: {models.mobilenet_v2.__name__}')
         for param in model.parameters():
@@ -170,7 +173,7 @@ def train(args):
                                          nn.Linear(in_features=1280, out_features=2),
                                          nn.LogSoftmax(dim=1))
         optimizer = optim.Adam(model.classifier.parameters(), lr=args.lr)
-    if (args.model == "Resnet50"):
+    elif (args.model == "Resnet50"):
         model = models.resnet50(pretrained=True)
         logging.info(f'Loaded pretrained model: {models.resnet50.__name__}')
         for param in model.parameters():

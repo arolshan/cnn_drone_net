@@ -12,5 +12,6 @@ DATA_BLOB_SAT_COMPRESSED = "https://nlpdatastorage.blob.core.windows.net/cnndata
 GE_DATA_PATH = f'{DATA_PATH}/{DATA_GE}'
 UAV_DATA_PATH = f'{DATA_PATH}/{DATA_UAV}'
 SAT_DATA_PATH = f'{DATA_PATH}/{DATA_SAT}'
+TRAIN_SET_UAV = 'UAV'
 TRAIN_SET_SAT = 'Satellite'
 TRAIN_SET_GE = 'GoogleEarth'
