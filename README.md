@@ -75,5 +75,4 @@ Example for a proper args JSON file:
 ```
 
 ### 3. Results
-3.1. Results would be placed the directory set in the 'output_path' argument. 
-3.2. In addition, plots aggregating results from all experiments (or single) would be placed in the relative './output' directory. 
+Results would be placed the directory set in the 'output_path' argument. In addition, plots aggregating results from all experiments (or single) would be placed in the relative './output' directory. 
