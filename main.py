@@ -4,16 +4,18 @@ import logging
 import os
 import time
 import cnn_drone_net_utils
-
+import numpy as np
 import matplotlib.pyplot as plt
 import torch
 import torchvision
+import matplotlib.pyplot as plt
 from matplotlib.pyplot import figure
 from sklearn.metrics import f1_score
 from torch import nn, optim
 from torchvision import models
 from glob import glob
 from cnn_drone_net_consts import *
+from scipy import interpolate
 
 try:
     from types import SimpleNamespace as Namespace
@@ -35,23 +37,17 @@ def str2bool(v):
 
 def extract_args():
     parser = argparse.ArgumentParser()
+    parser.add_argument("-i", "--input_args_dir", required=False, default=None, type=str, help="If this is set, we run multiple experiements based on the JSON files in given directory.")
     parser.add_argument("-o", "--output_path", required=False, default=DEFAULT_OUT_PATH, type=str, help="Output path")
-    parser.add_argument("-hl", "--hidden_layers", type=int, default='1', help="Number of hidden layers in Fully connected")
-    parser.add_argument("-hs", "--hidden_layer_sizes", nargs='+', default=[2048], help="Hidden Layer Output sizes")
     parser.add_argument("-b", "--batch_size", type=int, default='8', help="Number of batch_size")
     parser.add_argument("-e", "--epochs", type=int, default='3', help="Number of epochs")
     parser.add_argument("--print_rate", type=int, default='1', help="Print every number of steps")
     parser.add_argument("--cuda_device", type=int, default='0', help="CUDA device id")
     parser.add_argument("--lr", type=float, default='2e-3', help="Learning rate of adam")
-    parser.add_argument("--seed", type=int, default='42', help="Download the data")
     parser.add_argument("--dropout", type=float, default='0.2', help="Model dropout probability")
-    parser.add_argument("--dl_worker_count", type=int, default='4', help="Number of data loader workers")
-    parser.add_argument("--subset", type=int, default='-1', help="Run only on subset of data")
     parser.add_argument("--with_cuda", type=str2bool, nargs='?', const=True, default='True', help="Training with CUDA: true, or false")
     parser.add_argument("--download_data", type=str2bool, nargs='?', const=False, default='True', help="Download the data")
-    parser.add_argument("--data_parallel", type=str2bool, nargs='?', const=True, default='True', help="Run batches with data parallel")
-    parser.add_argument("--inference", type=str2bool, nargs='?', const=True, default='False', help="Is inference mode, i.e. evaluate last model state without training")
-    parser.add_argument("--train_set", type=str, default='GoogleEarth', help="Which set to train with. Possible values 'GoogleEarth', 'Satellite'")
+    parser.add_argument("--train_set", type=str, default='GoogleEarth', help="Which set to train with. Possible values 'GoogleEarth', 'Satellite', 'UAV'")
     parser.add_argument("--model", type=str, default='Resnet50', help="Which CNN to run. Possible values 'Resnet50', 'VGG16', 'Mobilenet_V2'")
     args = parser.parse_args()
 
@@ -120,7 +116,7 @@ def download_data_unzip(args):
 
 def train(args):
     train_data_dir = GE_DATA_PATH
-    if(args.train_set == TRAIN_SET_UAV):
+    if (args.train_set == TRAIN_SET_UAV):
         train_loader, val_loader = cnn_drone_net_utils.load_split_train_test(UAV_DATA_PATH, batch_size=args.batch_size)
     else:
         if (args.train_set == TRAIN_SET_SAT):
@@ -170,7 +166,7 @@ def train(args):
                                              nn.LogSoftmax(dim=1))
         optimizer = optim.Adam(model.classifier[-1].parameters(), lr=args.lr)
 
-    elif(args.model == "Mobilenet_V2"):
+    elif (args.model == "Mobilenet_V2"):
         model = models.mobilenet_v2(pretrained=True)
         logging.info(f'Loaded pretrained model: {models.mobilenet_v2.__name__}')
         for param in model.parameters():
@@ -258,28 +254,92 @@ def train(args):
     plt.savefig(f'{args.output_path}/f1_score.png')
     plt.clf()
 
+    with open(f'{args.output_path}/losses.json', 'w') as losses_json_file:
+        losses = {
+            "validation": val_losses,
+            "train": train_losses,
+            "f1_score": f1_scores
+        }
+        json.dump(losses, losses_json_file)
+
 
 def main():
-    args_from_files = True
-    if (args_from_files):
+    args_cmd = extract_args()
+    if (args_cmd.input_args_dir != None):
         args_list = []
-        path = "./args"
+        path = args_cmd.input_args_dir
         print(f'Extracting possible args from directory {path}')
-        for json_file_name in glob('args/*.json'):
+        for json_file_name in glob(f'{args_cmd.input_args_dir}/*.json'):
             print(f'Loading json file {json_file_name}')
             with open(json_file_name, 'r') as json_file:
                 args_list += [json.load(json_file, object_hook=lambda d: Namespace(**d))]
-        else:
-            print(f'Extracting args from command line')
-            args_list = [extract_args()]
+    else:
+        print(f'Extracting args from command line')
+        args_list = [args_cmd]
 
-        print(f'Running on {len(args_list)} possible args')
-        for args in args_list:
-            create_dirs(args)
-            dump_args(args)
-            setup_logging(args)
-            download_data_unzip(args)
-            train(args)
+    print(f'Running on {len(args_list)} possible args')
+    for args in args_list:
+        create_dirs(args)
+        dump_args(args)
+        setup_logging(args)
+        download_data_unzip(args)
+        train(args)
+
+    # save graphs
+    print_graphs_results(args_list)
+
+
+def print_graphs_results(args_list):
+    print("Printing graphs")
+    val_losses_per_args = []
+    train_losses_per_args = []
+    f1_scores_per_args = []
+    for args in args_list:
+        losses_file = f'{args.output_path}/losses.json'
+        with open(losses_file, 'r') as json_file:
+            dict = json.load(json_file)
+            val_losses_per_args += [dict["validation"]]
+            train_losses_per_args += [dict["train"]]
+            f1_scores_per_args += [dict["f1_score"]]
+    i = 0
+    fig = figure(num=None, figsize=(30, 15))
+    fig.suptitle('Validation loss', fontsize=15)
+    num_steps = min(len(v) for v in val_losses_per_args)
+    min_val_per_args = {}
+    for (val_losses, args) in zip(val_losses_per_args, args_list):
+        min_val_per_args[f'Model: {args.model}, Train: {args.train_set}'] = min(val_losses)
+        losses = val_losses[:num_steps:1]
+        x_new, y_new = cnn_drone_net_utils.interpolate_line(np.arange(0, len(losses)), losses, 0.1)
+        plt.plot(x_new, y_new, label=f'Model: {args.model}, Train: {args.train_set}')
+        i += 1
+    plt.xlabel('step', labelpad=10, fontsize=25)
+    plt.ylabel('loss', labelpad=10, fontsize=25, rotation=0)
+    plt.tick_params(axis='x', labelsize=20)
+    plt.tick_params(axis='y', labelsize=20)
+    plt.legend(loc="upper right", title="Runs", frameon=True, prop={'size': 30})
+    plt.savefig(f'output/val_losses.png')
+    plt.clf()
+    print(min_val_per_args)
+    i = 0
+    fig = figure(num=None, figsize=(30, 15))
+    fig.suptitle('F1 score', fontsize=15)
+    num_steps = min(len(v) for v in f1_scores_per_args)
+    min_val_per_args = {}
+    for (f1_scores, args) in zip(f1_scores_per_args, args_list):
+        min_val_per_args[f'Model: {args.model}, Train: {args.train_set}'] = min(f1_scores)
+        f1 = f1_scores[:num_steps:3]
+        x_new, y_new = cnn_drone_net_utils.interpolate_line(np.arange(0, len(f1)), f1, 0.1)
+        plt.plot(x_new, y_new, label=f'Model: {args.model}, Train: {args.train_set}')
+        i += 1
+    plt.xlabel('steps/3', labelpad=10, fontsize=25)
+    plt.ylabel('F1', labelpad=10, fontsize=25, rotation=0)
+    plt.tick_params(axis='x', labelsize=20)
+    plt.tick_params(axis='y', labelsize=20)
+    plt.legend(loc="lower right", title="Runs", frameon=True, prop={'size': 30})
+    plt.savefig(f'output/f1_scores.png')
+    plt.clf()
+    print("Loss per experiments:")
+    print(min_val_per_args)
 
 
 if __name__ == "__main__":

@@ -483,3 +483,4 @@ project.lock.json
 *.pth
 */events.out.*
 **/events.out.*
+**/*.pth

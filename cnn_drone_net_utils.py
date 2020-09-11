@@ -15,6 +15,7 @@ import cnn_drone_net_transforms
 from clint.textui import progress
 from torchvision import transforms, datasets
 from torch.utils.data.sampler import SubsetRandomSampler
+from scipy import interpolate
 
 
 def unzip_file(file, out_folder):
@@ -53,6 +54,14 @@ def download_file(url, out_path):
 
     r.release_conn()
 
+
+def interpolate_line(x, y, new_step=0.1):
+    x = np.arange(0, len(y))
+    f = interpolate.make_interp_spline(x, y)
+    x_new = np.arange(0, len(y), new_step)
+    y_new = f(x_new)
+
+    return x_new, y_new
 
 def load_split_train_test(datadir, valid_size=.4, batch_size=64, img_resize=224):
     train_transforms = transforms.Compose([
