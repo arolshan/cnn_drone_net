@@ -12,8 +12,14 @@ from matplotlib.pyplot import figure
 from sklearn.metrics import f1_score
 from torch import nn, optim
 from torchvision import models
-
+from glob import glob
 from cnn_drone_net_consts import *
+
+try:
+    from types import SimpleNamespace as Namespace
+except ImportError:
+    # Python 2.x fallback
+    from argparse import Namespace
 
 
 def str2bool(v):
@@ -161,7 +167,7 @@ def train(args):
                                              nn.LogSoftmax(dim=1))
         optimizer = optim.Adam(model.classifier[-1].parameters(), lr=args.lr)
 
-    if(args.model == "Mobilenet_V2"):
+    if (args.model == "Mobilenet_V2"):
         model = models.mobilenet_v2(pretrained=True)
         logging.info(f'Loaded pretrained model: {models.mobilenet_v2.__name__}')
         for param in model.parameters():
@@ -249,13 +255,28 @@ def train(args):
     plt.savefig(f'{args.output_path}/f1_score.png')
     plt.clf()
 
+
 def main():
-    args = extract_args()
-    create_dirs(args)
-    dump_args(args)
-    setup_logging(args)
-    download_data_unzip(args)
-    train(args)
+    args_from_files = True
+    if (args_from_files):
+        args_list = []
+        path = "./args"
+        print(f'Extracting possible args from directory {path}')
+        for json_file_name in glob('args/*.json'):
+            print(f'Loading json file {json_file_name}')
+            with open(json_file_name, 'r') as json_file:
+                args_list += [json.load(json_file, object_hook=lambda d: Namespace(**d))]
+        else:
+            print(f'Extracting args from command line')
+            args_list = [extract_args()]
+
+        print(f'Running on {len(args_list)} possible args')
+        for args in args_list:
+            create_dirs(args)
+            dump_args(args)
+            setup_logging(args)
+            download_data_unzip(args)
+            train(args)
 
 
 if __name__ == "__main__":
